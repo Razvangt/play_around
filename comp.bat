@@ -1,5 +1,5 @@
-gcc  -c src/function.c  -o build/function.o 
-gcc   src/main.c build/function.o -o build/output.exe 
+g++  -c src/function.cpp  -o build/function.o 
+g++  src/main.cpp build/function.o -o build/output.exe 
 
 
 %~dp0/build/output.exe

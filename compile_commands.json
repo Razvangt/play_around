@@ -1,0 +1,8 @@
+[
+{
+  "directory": "C:/Users/razvan/pro/code/c/play_around/out/build/default",
+  "command": "C:\\PROGRA~1\\LLVM\\bin\\CLANG_~1.EXE -DGLFW_DLL -IC:/VulkanSDK/1.3.275.0/Include -isystem C:/dev/vcpkg/installed/x64-windows/include -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++20 -o CMakeFiles\\VulkanApp.dir\\src\\main.cpp.obj -c C:\\Users\\razvan\\pro\\code\\c\\play_around\\src\\main.cpp",
+  "file": "C:\\Users\\razvan\\pro\\code\\c\\play_around\\src\\main.cpp",
+  "output": "CMakeFiles\\VulkanApp.dir\\src\\main.cpp.obj"
+}
+]

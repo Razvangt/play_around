@@ -3,7 +3,7 @@
 #include "debug.h"
 #include "structs.h"
 
-
+//TODO: Change this App from the Opp style to some nice functional style with struct functions and maybe something but not to much
 class HelloTriangleApplication {
     public:
 

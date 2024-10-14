@@ -24,5 +24,6 @@ static std::vector<char> readFile(const std::string& filename) {
     return buffer;
 }
 
+uint32_t findMemorytype( RazWindow *window, uint32_t typeFilter,VkMemoryPropertyFlags properties );
 
 #endif // !RAZ_VK_TOOLS_HEADERS

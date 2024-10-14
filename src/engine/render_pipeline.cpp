@@ -63,10 +63,15 @@ void createGraphicsPipeline(struct Engine_App* state) {
 
     VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
+    auto bindingDescription    = Vertex::getBindingDescription();
+    auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount   = 0;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    vertexInputInfo.vertexBindingDescriptionCount   = 1;
+    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    vertexInputInfo.pVertexBindingDescriptions      = &bindingDescription;
+    vertexInputInfo.pVertexAttributeDescriptions    = attributeDescriptions.data();
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -149,7 +154,6 @@ void createGraphicsPipeline(struct Engine_App* state) {
 }
 
 
-
 VkShaderModule createShaderModule(VkDevice device, const std::vector<char>& code) {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -164,7 +168,55 @@ VkShaderModule createShaderModule(VkDevice device, const std::vector<char>& code
     return shaderModule;
 }
 
+void createFramebuffers(struct RazSwapChain* swapChain, VkDevice device, VkRenderPass renderPass) {
+    swapChain->Framebuffers.resize(swapChain->ImageViews.size());
+
+    for (size_t i = 0; i < swapChain->ImageViews.size(); i++) {
+        VkImageView attachments[] = { swapChain->ImageViews[i] };
+
+        VkFramebufferCreateInfo framebufferInfo{};
+        framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass      = renderPass;
+        framebufferInfo.attachmentCount = 1;
+        framebufferInfo.pAttachments    = attachments;
+        framebufferInfo.width           = swapChain->Extent.width;
+        framebufferInfo.height          = swapChain->Extent.height;
+        framebufferInfo.layers          = 1;
+
+        if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChain->Framebuffers[i]) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create framebuffer!");
+        }
+    }
+}
 
 
+void createVertexBuffers(struct Engine_App* state) {
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size        = sizeof(vertices[0]) * vertices.size();
+    bufferInfo.usage       = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
+    if (vkCreateBuffer(state->window.device, &bufferInfo, nullptr, &state->vertexBuffer) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create vertex buffer!");
+    }
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(state->window.device, state->vertexBuffer, &memRequirements);
 
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex =
+    findMemorytype(&state -> window,memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    if (vkAllocateMemory(state->window.device, &allocInfo, nullptr, &state->vertexBufferMemory) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate vertex buffer memorty!");
+    }
+    vkBindBufferMemory(state->window.device, state->vertexBuffer, state->vertexBufferMemory, 0);
+
+    void* data; 
+    vkMapMemory(state -> window.device, state -> vertexBufferMemory,0,bufferInfo.size,0,&data);
+    memcpy(data,vertices.data(), (size_t)bufferInfo.size);
+    vkUnmapMemory(state-> window.device, state-> vertexBufferMemory);
+
+}

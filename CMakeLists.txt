@@ -14,6 +14,7 @@ set(SOURCE_FILES src/main.cpp
                 src/engine/window.cpp
                 src/engine/render_pipeline.cpp
                 src/engine/swapchain.cpp
+                src/engine/vk_commands.cpp 
                 src/engine/engine_lib.cpp 
                )
 

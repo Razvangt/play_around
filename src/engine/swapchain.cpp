@@ -147,26 +147,4 @@ void cleanupSwapChain(RazSwapChain* swapChain, VkDevice device) {
 }
 
 
-void createFramebuffers(struct RazSwapChain* swapChain, VkDevice device, VkRenderPass renderPass) {
-    swapChain->Framebuffers.resize(swapChain->ImageViews.size());
-
-    for (size_t i = 0; i < swapChain->ImageViews.size(); i++) {
-        VkImageView attachments[] = { swapChain->ImageViews[i] };
-
-        VkFramebufferCreateInfo framebufferInfo{};
-        framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass      = renderPass;
-        framebufferInfo.attachmentCount = 1;
-        framebufferInfo.pAttachments    = attachments;
-        framebufferInfo.width           = swapChain->Extent.width;
-        framebufferInfo.height          = swapChain->Extent.height;
-        framebufferInfo.layers          = 1;
-
-        if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChain->Framebuffers[i]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create framebuffer!");
-        }
-    }
-}
-
-
 

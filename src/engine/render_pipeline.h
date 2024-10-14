@@ -6,7 +6,8 @@
 
 void createRenderPass(struct Engine_App *state);
 void createGraphicsPipeline(struct Engine_App *state);
-
+void createFramebuffers(struct RazSwapChain* swapChain, VkDevice device, VkRenderPass renderPass); 
+void createVertexBuffers(struct Engine_App *state);
 VkShaderModule createShaderModule(VkDevice device,const std::vector<char>& code);
 
 

@@ -27,7 +27,8 @@ void initVulkan(struct Engine_App* state) {
 
   //vk_commands.h  
     createCommandPool(state);
-    createVertexBuffers(state);  //render_pipeline.h
+    createVertexBuffer(state);  //render_pipeline.h
+    createIndexBuffer(state);  //render_pipeline.h
     createCommandBuffers(state);
     createSyncObjects(state);
 }
@@ -46,7 +47,12 @@ void mainLoop(struct Engine_App* state) {
 
 void cleanup(struct Engine_App* state) {
     cleanupSwapChain(&state->swapChain, state->window.device);
-    
+    vkDestroyBuffer(state ->window.device,state -> indexBuffer, nullptr);
+    vkFreeMemory(state ->window.device, state ->indexBufferMemory, nullptr);
+
+    vkDestroyBuffer(state -> window.device , state ->vertexBuffer, nullptr);
+    vkFreeMemory(state ->window.device, state -> vertexBufferMemory, nullptr);
+
     // Vertex Buffer 
     vkDestroyBuffer(state ->window.device,state -> vertexBuffer, nullptr);
     vkFreeMemory(state ->window.device, state -> vertexBufferMemory, nullptr);

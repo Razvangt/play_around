@@ -45,8 +45,8 @@ void recordCommandBuffer(struct Engine_App* state, VkCommandBuffer commandBuffer
     VkClearValue clearColor        = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
     renderPassInfo.clearValueCount = 1;
     renderPassInfo.pClearValues    = &clearColor;
-    
-    
+
+
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, state->graphicsPipeline);
@@ -64,14 +64,15 @@ void recordCommandBuffer(struct Engine_App* state, VkCommandBuffer commandBuffer
     scissor.offset = { 0, 0 };
     scissor.extent = state->swapChain.Extent;
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-    
 
-    VkBuffer vertexBuffers[] = { state -> vertexBuffer};
-    VkDeviceSize offsets[] = {0};
-    vkCmdBindVertexBuffers(commandBuffer, 0 ,1 ,vertexBuffers,offsets);
 
-    
-   vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertices.size()), 1, 0, 0);
+    VkBuffer vertexBuffers[] = { state->vertexBuffer };
+    VkDeviceSize offsets[]   = { 0 };
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+
+    vkCmdBindIndexBuffer(commandBuffer, state->indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
     vkCmdEndRenderPass(commandBuffer);
 
     if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {

@@ -191,32 +191,23 @@ void createFramebuffers(struct RazSwapChain* swapChain, VkDevice device, VkRende
 
 
 void createVertexBuffers(struct Engine_App* state) {
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size        = sizeof(vertices[0]) * vertices.size();
-    bufferInfo.usage       = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
-    if (vkCreateBuffer(state->window.device, &bufferInfo, nullptr, &state->vertexBuffer) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create vertex buffer!");
-    }
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(state->window.device, state->vertexBuffer, &memRequirements);
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
 
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex =
-    findMemorytype(&state -> window,memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    createBuffer(&state->window, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-    if (vkAllocateMemory(state->window.device, &allocInfo, nullptr, &state->vertexBufferMemory) != VK_SUCCESS) {
-        throw std::runtime_error("failed to allocate vertex buffer memorty!");
-    }
-    vkBindBufferMemory(state->window.device, state->vertexBuffer, state->vertexBufferMemory, 0);
+    void* data;
+    vkMapMemory(state->window.device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices.data(), (size_t)bufferSize);
+    vkUnmapMemory(state->window.device, stagingBufferMemory);
 
-    void* data; 
-    vkMapMemory(state -> window.device, state -> vertexBufferMemory,0,bufferInfo.size,0,&data);
-    memcpy(data,vertices.data(), (size_t)bufferInfo.size);
-    vkUnmapMemory(state-> window.device, state-> vertexBufferMemory);
+    createBuffer(&state->window, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, state->vertexBuffer, state->vertexBufferMemory);
+    copyBuffer(state, stagingBuffer, state->vertexBuffer, bufferSize);
 
+    vkDestroyBuffer(state->window.device, stagingBuffer, nullptr);
+    vkFreeMemory(state->window.device, stagingBufferMemory, nullptr);
 }

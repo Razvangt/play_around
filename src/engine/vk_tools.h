@@ -2,9 +2,9 @@
 #define RAZ_VK_TOOLS_HEADERS
 #include "structs.h"
 bool checkValidationLayerSupport();
-QueueFamilyIndices findQueueFamilies(VkSurfaceKHR surface,VkPhysicalDevice device);
+QueueFamilyIndices findQueueFamilies(VkSurfaceKHR surface, VkPhysicalDevice device);
 bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-SwapChainSupportDetails querySwapChainSupport(VkSurfaceKHR surface,VkPhysicalDevice device);
+SwapChainSupportDetails querySwapChainSupport(VkSurfaceKHR surface, VkPhysicalDevice device);
 std::vector<const char*> getRequiredExtensions();
 static std::vector<char> readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -24,6 +24,7 @@ static std::vector<char> readFile(const std::string& filename) {
     return buffer;
 }
 
-uint32_t findMemorytype( RazWindow *window, uint32_t typeFilter,VkMemoryPropertyFlags properties );
-
+uint32_t findMemorytype(RazWindow* window, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+void createBuffer(RazWindow* window, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+void copyBuffer(struct Engine_App* state, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 #endif // !RAZ_VK_TOOLS_HEADERS

@@ -52,4 +52,48 @@ struct SwapChainSupportDetails {
 };
 
 
+struct RazSwapChain{
+  VkSwapchainKHR handle;
+    std::vector<VkImage> Images;
+    VkFormat ImageFormat;
+    VkExtent2D Extent;
+    std::vector<VkImageView> ImageViews;
+    std::vector<VkFramebuffer> Framebuffers;
+};
+struct RazWindow{
+    GLFWwindow* handle;
+    VkInstance instance;
+    VkSurfaceKHR surface;
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDevice device;
+};
+
+
+struct Engine_App {
+    // window struct ??
+    RazWindow window;
+    VkDebugUtilsMessengerEXT debugMessenger;
+
+    VkQueue graphicsQueue;
+    VkQueue presentQueue;
+    
+    RazSwapChain swapChain;
+
+    //  Render Pipeline
+    VkRenderPass renderPass;
+    VkPipelineLayout pipelineLayout;
+    VkPipeline graphicsPipeline;
+
+    VkCommandPool commandPool;
+    std::vector<VkCommandBuffer> commandBuffers;
+
+    std::vector<VkSemaphore> imageAvailableSemaphores;
+    std::vector<VkSemaphore> renderFinishedSemaphores;
+    std::vector<VkFence> inFlightFences;
+
+    uint32_t currentFrame = 0;
+
+    bool framebufferResized = false;
+};
+
 #endif // !STRUCTS_APP

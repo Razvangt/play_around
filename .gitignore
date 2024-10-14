@@ -2,7 +2,7 @@
 .fleet
 out
 
-*.lua
+/lua_scripts
 compile_commands.json
 
 ## Ignore Visual Studio temporary files, build results, and

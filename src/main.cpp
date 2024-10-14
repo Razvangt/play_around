@@ -1,10 +1,10 @@
-#include "../include/vk_app.h"
+#include "engine/engine_lib.h"
 
 int main() {
-    HelloTriangleApplication app;
+    struct Engine_App app;
 
     try {
-        app.run();
+        run(&app);
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;

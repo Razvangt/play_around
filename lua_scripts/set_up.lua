@@ -2,7 +2,6 @@ require "lua_scripts.env_variables"
 
 
 os.execute("mkdir build")
-os.execute("mkdir resources")
 
 
 local origin = LibPaths.glfw .. "/bin"

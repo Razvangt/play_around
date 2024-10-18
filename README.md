@@ -2,7 +2,11 @@
 
 [tutorial](https://vulkan-tutorial.com/Uniform_buffers/Descriptor_pool_and_sets)
 
+
+
 ## BUILD 
+
+Required : clang++,vulkan,glswf,glm 
 
 Add a script called env_variables under the lua_scripts folder 
 
@@ -25,4 +29,4 @@ Run this scripts on this order
 - vulkan configurator
 
 ## Editor 
-nvim + lazyvim + clang lsp  + Exrc Plugin + Overseer 
+I use nvim + lazyvim + clang lsp  + Exrc Plugin + Overseer 

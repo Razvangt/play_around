@@ -1,11 +1,6 @@
 #pragma once
-#include "structs.h"
-#include "debug.h"
-#include "vk_tools.h"
 #include "window.h"
-#include "swapchain.h"
-#include "vk_commands.h"
-#include "render_pipeline.h"
+#include "pipeline.h"
 
 // Run Method 
 void run(struct Engine_App *state);

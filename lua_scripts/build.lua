@@ -57,12 +57,9 @@ add_flags("-std=c++20")
 
 --- SOURCE 
 add_source("src/main.cpp")
-add_source("src/engine/debug.cpp")
 add_source("src/engine/vk_tools.cpp")
+add_source("src/engine/pipeline.cpp")
 add_source("src/engine/window.cpp")
-add_source("src/engine/render_pipeline.cpp")
-add_source("src/engine/swapchain.cpp")
-add_source("src/engine/vk_commands.cpp")
 add_source("src/engine/engine_lib.cpp")
 local result = "-o build/main.exe"
 

@@ -1,7 +1,5 @@
 #pragma once
-#include "structs.h"
 #include "vk_tools.h"
-#include "debug.h"
 
 
 static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {

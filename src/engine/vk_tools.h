@@ -1,5 +1,5 @@
 #pragma once
-#include "structs.h"
+#include "types.h"
 bool checkValidationLayerSupport();
 QueueFamilyIndices findQueueFamilies(VkSurfaceKHR surface, VkPhysicalDevice device);
 bool checkDeviceExtensionSupport(VkPhysicalDevice device);

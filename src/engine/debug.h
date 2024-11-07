@@ -1,5 +1,4 @@
-#ifndef DEBUG_VK_APP
-#define DEBUG_VK_APP
+#pragma once
 #include "structs.h"
 
 
@@ -21,4 +20,3 @@ void* pUserData) {
     return VK_FALSE;
 }
 
-#endif // !DEBUG_VK_APP

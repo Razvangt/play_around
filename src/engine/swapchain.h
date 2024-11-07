@@ -1,5 +1,4 @@
-#ifndef RAZ_SWAPCHAIN_HEADERS
-#define RAZ_SWAPCHAIN_HEADERS
+#pragma once
 #include "structs.h"
 #include "vk_tools.h"
 #include "debug.h"
@@ -13,4 +12,3 @@ VkExtent2D chooseSwapExtent(GLFWwindow *window,const VkSurfaceCapabilitiesKHR& c
 void recreateSwapChain(struct Engine_App* state);
 void cleanupSwapChain(RazSwapChain *swapChain,VkDevice device );
 
-#endif // !SWAPCHAIN_

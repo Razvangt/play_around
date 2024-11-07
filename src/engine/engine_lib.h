@@ -1,5 +1,4 @@
-#ifndef VK_APP_HEADDERS
-#define VK_APP_HEADDERS
+#pragma once
 #include "structs.h"
 #include "debug.h"
 #include "vk_tools.h"
@@ -21,4 +20,3 @@ void drawFrame(struct Engine_App *state);
 // Clean Methods 
 void cleanup(struct Engine_App *state);
 
-#endif // !VK_APP_HEADDERS

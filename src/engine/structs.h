@@ -1,5 +1,4 @@
-#ifndef STRUCTS_APP
-#define STRUCTS_APP
+#pragma once
 
 #include "vulkan/vulkan_core.h"
 #define GLFW_INCLUDE_VULKAN
@@ -162,4 +161,3 @@ struct Engine_App {
     bool framebufferResized = false;
 };
 
-#endif // !STRUCTS_APP

@@ -1,5 +1,4 @@
-#ifndef RENDER_PIPELIONE_HEADERS
-#define RENDER_PIPELIONE_HEADERS
+#pragma once
 #include "debug.h"
 #include "structs.h"
 #include "vk_tools.h"
@@ -19,4 +18,3 @@ void createDescriptorPool(struct Engine_App* state);
 void createDescriptorSets(struct Engine_App* state);
 
 
-#endif // !RENDER_PIPELIONE_HEADERS

@@ -1,5 +1,4 @@
-#ifndef RAZ_WINDOW_HEADERS
-#define RAZ_WINDOW_HEADERS
+#pragma once
 #include "structs.h"
 #include "vk_tools.h"
 #include "debug.h"
@@ -19,4 +18,3 @@ void pickPhysicalDevice(struct RazWindow *window);
 bool isDeviceSuitable(VkSurfaceKHR surface,VkPhysicalDevice device);
 void createLogicalDevice(struct Engine_App *state);
 
-#endif // !RAZ_WINDOW_HEADERS

@@ -1,5 +1,4 @@
-#ifndef RAZ_VK_TOOLS_HEADERS
-#define RAZ_VK_TOOLS_HEADERS
+#pragma once
 #include "structs.h"
 bool checkValidationLayerSupport();
 QueueFamilyIndices findQueueFamilies(VkSurfaceKHR surface, VkPhysicalDevice device);
@@ -27,4 +26,3 @@ static std::vector<char> readFile(const std::string& filename) {
 uint32_t findMemorytype(RazWindow* window, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 void createBuffer(RazWindow* window, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 void copyBuffer(struct Engine_App* state, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-#endif // !RAZ_VK_TOOLS_HEADERS

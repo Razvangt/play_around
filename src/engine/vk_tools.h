@@ -26,6 +26,11 @@ static std::vector<char> readFile(const std::string& filename) {
 uint32_t findMemorytype(RazWindow* window, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 void createBuffer(RazWindow* window, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 void copyBuffer(struct Engine_App* state, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+void transitionImageLayout(struct Engine_App* state, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+void copyBufferToImage(struct Engine_App* state, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+VkCommandBuffer beginSingleTimeCommands(struct Engine_App* state);
+void endSingleTimeCommands( struct Engine_App* state,VkCommandBuffer commandBuffer);
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
 const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
 const VkAllocationCallbacks* pAllocator,

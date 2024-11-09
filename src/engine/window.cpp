@@ -91,8 +91,9 @@ bool isDeviceSuitable(VkSurfaceKHR surface, VkPhysicalDevice device) {
         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(surface, device);
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
-
-    return indices.isComplete() && extensionsSupported && swapChainAdequate;
+    VkPhysicalDeviceFeatures supportedFeatures;
+    vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+    return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
 void createLogicalDevice(struct Engine_App* state) {
@@ -112,7 +113,7 @@ void createLogicalDevice(struct Engine_App* state) {
     }
 
     VkPhysicalDeviceFeatures deviceFeatures{};
-
+    deviceFeatures.samplerAnisotropy = VK_TRUE;
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 

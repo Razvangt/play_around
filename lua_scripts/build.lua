@@ -39,17 +39,21 @@ include_path(LibPaths.stb,"include")
 include_path(LibPaths.vulkan, "Include")
 include_path(LibPaths.glfw, "include")
 include_path(LibPaths.glm, "include")
+include_path(LibPaths.objLoader, "include")
 
 lib_path(LibPaths.vulkan, "Lib")
 lib_path(LibPaths.glfw, "lib")
 lib_path(LibPaths.glm, "lib")
+lib_path(LibPaths.objLoader, "lib")
 
 lib_to_link("vulkan-1")
 lib_to_link("glfw3dll")
 lib_to_link("glm")
+lib_to_link("tinyobjloader")
 
 -- COMPILER
 local compiler = "clang++"
+add_flags("-O3")
 add_flags("-Wall")
 add_flags("-MJ fragments ")
 add_flags("-g")

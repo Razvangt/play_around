@@ -1,5 +1,6 @@
 #pragma once
 #include "vk_tools.h"
+#include <unordered_map>
 
 void createCommandPool(struct Engine_App* state);
 void createCommandBuffers(struct Engine_App* state);
@@ -22,6 +23,7 @@ void createTextureSampler(struct Engine_App* state);
 void createDepthResources(struct Engine_App* state);
 VkImageView createImageView(struct RazWindow* window, VkImage image, VkFormat format,VkImageAspectFlags aspectFlags);
 
+void loadModel(struct Engine_App* state);
 
 
 void recordCommandBuffer(struct Engine_App* state, VkCommandBuffer commandBuffer, uint32_t imageIndex);

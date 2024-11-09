@@ -32,6 +32,7 @@ void initVulkan(struct Engine_App* state) {
     createTextureImage(state);
     createTextureImageView(state);
     createTextureSampler(state);
+    loadModel(state);
     createVertexBuffer(state);  // render_pipeline.h
     createIndexBuffer(state);   // render_pipeline.h
     createUniformBuffer(state); // render_pipeline.h

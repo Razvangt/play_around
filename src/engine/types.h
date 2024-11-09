@@ -8,7 +8,8 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
 
 #include <algorithm>
 #include <array>
@@ -33,9 +34,10 @@ const bool enableValidationLayers = true;
 #endif
 
 
-const uint32_t WIDTH  = 800;
-const uint32_t HEIGHT = 600;
-
+const uint32_t WIDTH           = 800;
+const uint32_t HEIGHT          = 600;
+const std::string MODEL_PATH   = "models/viking_room.obj";
+const std::string TEXTURE_PATH = "textures/viking_room.png";
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
@@ -54,6 +56,9 @@ struct Vertex {
     glm::vec3 color;
     glm::vec2 texCoord;
 
+    bool operator==(const Vertex& other) const {
+        return pos == other.pos && color == other.color && texCoord == other.texCoord;
+    }
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding   = 0;
@@ -84,24 +89,15 @@ struct Vertex {
         return attributeDescriptions;
     }
 };
-
-const std::vector<Vertex> vertices = {
-    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-
-    {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-    {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-    {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-    {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-};
-
-const std::vector<uint16_t> indices = {
-    0, 1, 2, 2, 3, 0,
-    4, 5, 6, 6, 7, 4
-};
-
+namespace std {
+    template<> struct hash<Vertex> {
+        size_t operator()(Vertex const& vertex) const {
+            return ((hash<glm::vec3>()(vertex.pos) ^
+                   (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+                   (hash<glm::vec2>()(vertex.texCoord) << 1);
+        }
+    };
+}
 
 struct QueueFamilyIndices {
     std::optional<uint32_t> graphicsFamily;
@@ -156,6 +152,8 @@ struct Engine_App {
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
 
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
     // Vertex Buffer
     VkBuffer vertexBuffer;
     VkDeviceMemory vertexBufferMemory;
@@ -169,8 +167,8 @@ struct Engine_App {
     VkDeviceMemory textureImageMemory;
     VkImageView textureImageView;
     VkSampler textureSampler;
-    
-    VkImage depthImage; 
+
+    VkImage depthImage;
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
 

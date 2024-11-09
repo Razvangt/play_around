@@ -24,10 +24,11 @@ void initVulkan(struct Engine_App* state) {
     createRenderPass(state);
     createDescriptorSetLayout(state);
     createGraphicsPipeline(state);
-    createFramebuffers(&state->swapChain, state->window.device, state->renderPass);
 
     // vk_commands.h
     createCommandPool(state);
+    createDepthResources(state);
+    createFramebuffers(&state->swapChain, state->window.device, state->renderPass,state ->depthImageView);
     createTextureImage(state);
     createTextureImageView(state);
     createTextureSampler(state);
@@ -52,6 +53,10 @@ void mainLoop(struct Engine_App* state) {
 
 void cleanup(struct Engine_App* state) {
     cleanupSwapChain(&state->swapChain, state->window.device);
+
+    vkDestroyImageView(state -> window.device,state-> depthImageView, nullptr);
+    vkDestroyImage(state -> window.device,state-> depthImage, nullptr);
+    vkFreeMemory(state -> window.device, state -> depthImageMemory, nullptr);
     
     vkDestroySampler(state -> window.device, state->textureSampler, nullptr);
     vkDestroyImageView(state -> window.device, state->textureImageView, nullptr);

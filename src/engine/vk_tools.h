@@ -30,14 +30,14 @@ void copyBuffer(struct Engine_App* state, VkBuffer srcBuffer, VkBuffer dstBuffer
 void transitionImageLayout(struct Engine_App* state, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 void copyBufferToImage(struct Engine_App* state, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 VkCommandBuffer beginSingleTimeCommands(struct Engine_App* state);
-void endSingleTimeCommands( struct Engine_App* state,VkCommandBuffer commandBuffer);
+void endSingleTimeCommands(struct Engine_App* state, VkCommandBuffer commandBuffer);
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
 const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
 const VkAllocationCallbacks* pAllocator,
-VkDebugUtilsMessengerEXT* pDebugMessenger); 
+VkDebugUtilsMessengerEXT* pDebugMessenger);
 
 void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-void setupDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT *debugMessenger);
+void setupDebugMessenger(VkInstance instance, VkDebugUtilsMessengerEXT* debugMessenger);
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -48,3 +48,8 @@ void* pUserData) {
 
     return VK_FALSE;
 }
+
+
+VkFormat findSupportedFormat(struct Engine_App* state, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+VkFormat findDepthFormat(struct Engine_App* state);
+bool hasStencilComponent(VkFormat format);

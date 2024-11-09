@@ -6,6 +6,21 @@
 #include <stb_image.h>
 
 void createRenderPass(struct Engine_App* state) {
+
+    VkAttachmentDescription depthAttachment{};
+    depthAttachment.format         = findDepthFormat(state);
+    depthAttachment.samples        = VK_SAMPLE_COUNT_1_BIT;
+    depthAttachment.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachment.finalLayout    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentRef{};
+    depthAttachmentRef.attachment = 1;
+    depthAttachmentRef.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
     VkAttachmentDescription colorAttachment{};
     colorAttachment.format         = state->swapChain.ImageFormat;
     colorAttachment.samples        = VK_SAMPLE_COUNT_1_BIT;
@@ -21,9 +36,10 @@ void createRenderPass(struct Engine_App* state) {
     colorAttachmentRef.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkSubpassDescription subpass{};
-    subpass.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments    = &colorAttachmentRef;
+    subpass.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount    = 1;
+    subpass.pColorAttachments       = &colorAttachmentRef;
+    subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
     VkSubpassDependency dependency{};
     dependency.srcSubpass    = VK_SUBPASS_EXTERNAL;
@@ -32,11 +48,15 @@ void createRenderPass(struct Engine_App* state) {
     dependency.srcAccessMask = 0;
     dependency.dstStageMask  = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
+    std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = 1;
-    renderPassInfo.pAttachments    = &colorAttachment;
+    renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+    renderPassInfo.pAttachments    = attachments.data();
     renderPassInfo.subpassCount    = 1;
     renderPassInfo.pSubpasses      = &subpass;
     renderPassInfo.dependencyCount = 1;
@@ -134,6 +154,18 @@ void createGraphicsPipeline(struct Engine_App* state) {
         throw std::runtime_error("failed to create pipeline layout!");
     }
 
+    VkPipelineDepthStencilStateCreateInfo depthStencil{};
+    depthStencil.sType                 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depthStencil.depthTestEnable       = VK_TRUE;
+    depthStencil.depthWriteEnable      = VK_TRUE;
+    depthStencil.depthCompareOp        = VK_COMPARE_OP_LESS;
+    depthStencil.depthBoundsTestEnable = VK_FALSE;
+    depthStencil.minDepthBounds        = 0.0f; // Optional
+    depthStencil.maxDepthBounds        = 1.0f; // Optional
+    depthStencil.stencilTestEnable     = VK_FALSE;
+    depthStencil.front                 = {}; // Optional
+    depthStencil.back                  = {}; // Optional
+
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.stageCount          = 2;
@@ -149,7 +181,7 @@ void createGraphicsPipeline(struct Engine_App* state) {
     pipelineInfo.renderPass          = state->renderPass;
     pipelineInfo.subpass             = 0;
     pipelineInfo.basePipelineHandle  = VK_NULL_HANDLE;
-
+    pipelineInfo.pDepthStencilState  = &depthStencil;
     if (vkCreateGraphicsPipelines(state->window.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &state->graphicsPipeline) != VK_SUCCESS) {
         throw std::runtime_error("failed to create graphics pipeline!");
     }
@@ -173,20 +205,20 @@ VkShaderModule createShaderModule(VkDevice device, const std::vector<char>& code
     return shaderModule;
 }
 
-void createFramebuffers(struct RazSwapChain* swapChain, VkDevice device, VkRenderPass renderPass) {
+void createFramebuffers(struct RazSwapChain* swapChain, VkDevice device, VkRenderPass renderPass, VkImageView depthImageView) {
     swapChain->Framebuffers.resize(swapChain->ImageViews.size());
 
     for (size_t i = 0; i < swapChain->ImageViews.size(); i++) {
-        VkImageView attachments[] = { swapChain->ImageViews[i] };
+        std::array<VkImageView, 2> attachments = { swapChain->ImageViews[i], depthImageView };
 
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass      = renderPass;
-        framebufferInfo.attachmentCount = 1;
-        framebufferInfo.pAttachments    = attachments;
+        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        framebufferInfo.pAttachments    = attachments.data();
+        framebufferInfo.layers          = 1;
         framebufferInfo.width           = swapChain->Extent.width;
         framebufferInfo.height          = swapChain->Extent.height;
-        framebufferInfo.layers          = 1;
 
         if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChain->Framebuffers[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create framebuffer!");
@@ -249,7 +281,7 @@ void createDescriptorSetLayout(struct Engine_App* state) {
     uboLayoutBinding.descriptorType     = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     uboLayoutBinding.pImmutableSamplers = nullptr;
     uboLayoutBinding.stageFlags         = VK_SHADER_STAGE_VERTEX_BIT;
- 
+
     VkDescriptorSetLayoutBinding samplerLayoutBinding{};
     samplerLayoutBinding.binding            = 1;
     samplerLayoutBinding.descriptorCount    = 1;
@@ -457,13 +489,13 @@ VkExtent2D chooseSwapExtent(GLFWwindow* window, const VkSurfaceCapabilitiesKHR& 
     }
 }
 
-VkImageView createImageView(struct RazWindow* window, VkImage image, VkFormat format) {
+VkImageView createImageView(struct RazWindow* window, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image                           = image;
     viewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
     viewInfo.format                          = format;
-    viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.aspectMask     = aspectFlags;
     viewInfo.subresourceRange.baseMipLevel   = 0;
     viewInfo.subresourceRange.levelCount     = 1;
     viewInfo.subresourceRange.baseArrayLayer = 0;
@@ -482,7 +514,7 @@ void createImageViews(struct RazWindow* window, struct RazSwapChain* swapChain) 
     swapChain->ImageViews.resize(swapChain->Images.size());
 
     for (size_t i = 0; i < swapChain->Images.size(); i++) {
-        swapChain->ImageViews[i] = createImageView(window, swapChain->Images[i], swapChain->ImageFormat);
+        swapChain->ImageViews[i] = createImageView(window, swapChain->Images[i], swapChain->ImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 }
 
@@ -501,7 +533,8 @@ void recreateSwapChain(struct Engine_App* state) {
 
     createSwapChain(&state->window, &state->swapChain);
     createImageViews(&state->window, &state->swapChain);
-    createFramebuffers(&state->swapChain, state->window.device, state->renderPass);
+    createDepthResources(state);
+    createFramebuffers(&state->swapChain, state->window.device, state->renderPass, state->depthImageView);
 }
 
 
@@ -552,6 +585,10 @@ void recordCommandBuffer(struct Engine_App* state, VkCommandBuffer commandBuffer
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
         throw std::runtime_error("failed to begin recording command buffer!");
     }
+    std::array<VkClearValue, 2> clearValues{};
+    clearValues[0].color        = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+    clearValues[1].depthStencil = { 1.0f, 0 };
+
 
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -559,10 +596,8 @@ void recordCommandBuffer(struct Engine_App* state, VkCommandBuffer commandBuffer
     renderPassInfo.framebuffer       = state->swapChain.Framebuffers[imageIndex];
     renderPassInfo.renderArea.offset = { 0, 0 };
     renderPassInfo.renderArea.extent = state->swapChain.Extent;
-
-    VkClearValue clearColor        = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
-    renderPassInfo.clearValueCount = 1;
-    renderPassInfo.pClearValues    = &clearColor;
+    renderPassInfo.clearValueCount   = static_cast<uint32_t>(clearValues.size());
+    renderPassInfo.pClearValues      = clearValues.data();
 
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -649,8 +684,7 @@ void createTextureImage(struct Engine_App* state) {
 
     transitionImageLayout(state, state->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyBufferToImage(
-    state, stagingBuffer, state->textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+    copyBufferToImage(state, stagingBuffer, state->textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
     transitionImageLayout(state, state->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
@@ -704,7 +738,8 @@ VkDeviceMemory& imageMemory) {
 
 
 void createTextureImageView(struct Engine_App* state) {
-    state->textureImageView = createImageView(&state->window, state->textureImage, VK_FORMAT_R8G8B8A8_SRGB);
+    state->textureImageView =
+    createImageView(&state->window, state->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 }
 
 
@@ -729,4 +764,14 @@ void createTextureSampler(struct Engine_App* state) {
     if (vkCreateSampler(state->window.device, &samplerInfo, nullptr, &state->textureSampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
+}
+
+
+void createDepthResources(struct Engine_App* state) {
+    VkFormat depthFormat = findDepthFormat(state);
+    createImage(state, state->swapChain.Extent.width, state->swapChain.Extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+    VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, state->depthImage, state->depthImageMemory);
+    state->depthImageView = createImageView(&state->window, state->depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+    transitionImageLayout(
+    state, state->depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }

@@ -6,7 +6,7 @@ void createCommandBuffers(struct Engine_App* state);
 void createSyncObjects(struct Engine_App* state);
 void createRenderPass(struct Engine_App* state);
 void createGraphicsPipeline(struct Engine_App* state);
-void createFramebuffers(struct RazSwapChain* swapChain, VkDevice device, VkRenderPass renderPass);
+void createFramebuffers(struct RazSwapChain* swapChain, VkDevice device, VkRenderPass renderPass, VkImageView depthImageView);
 void createVertexBuffer(struct Engine_App* state);
 void createIndexBuffer(struct Engine_App* state);
 void createUniformBuffer(struct Engine_App* state);
@@ -15,11 +15,14 @@ void createDescriptorSetLayout(struct Engine_App* state);
 void createDescriptorPool(struct Engine_App* state);
 void createDescriptorSets(struct Engine_App* state);
 void createSwapChain(struct RazWindow* window, struct RazSwapChain* swapChain);
-VkImageView createImageView(struct RazWindow* window, VkImage image, VkFormat format);
 void createImageViews(struct RazWindow* window, struct RazSwapChain* swapChain);
 void createTextureImage(struct Engine_App* state);
 void createTextureImageView(struct Engine_App* state);
 void createTextureSampler(struct Engine_App* state);
+void createDepthResources(struct Engine_App* state);
+VkImageView createImageView(struct RazWindow* window, VkImage image, VkFormat format,VkImageAspectFlags aspectFlags);
+
+
 
 void recordCommandBuffer(struct Engine_App* state, VkCommandBuffer commandBuffer, uint32_t imageIndex);
 void updateUniformBuffer(struct Engine_App* state, uint32_t currentImage);

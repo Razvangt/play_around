@@ -168,7 +168,7 @@ void copyBuffer(struct Engine_App* state, VkBuffer srcBuffer, VkBuffer dstBuffer
     endSingleTimeCommands(state, commandBuffer);
 }
 
-void transitionImageLayout(struct Engine_App* state, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+void transitionImageLayout(struct Engine_App* state, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout,uint32_t mipLevels) {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands(state);
     VkImageMemoryBarrier barrier{};
     barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -178,7 +178,7 @@ void transitionImageLayout(struct Engine_App* state, VkImage image, VkFormat for
     barrier.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
     barrier.image                           = image;
     barrier.subresourceRange.baseMipLevel   = 0;
-    barrier.subresourceRange.levelCount     = 1;
+    barrier.subresourceRange.levelCount     = mipLevels;
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.layerCount     = 1;
 

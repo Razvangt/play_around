@@ -161,6 +161,7 @@ struct Engine_App {
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
 
+    uint32_t mipLevels;
     // Staging Buffer
     // Texture Buffer
     VkImage textureImage;

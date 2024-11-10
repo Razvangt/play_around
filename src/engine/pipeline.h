@@ -21,8 +21,8 @@ void createTextureImage(struct Engine_App* state);
 void createTextureImageView(struct Engine_App* state);
 void createTextureSampler(struct Engine_App* state);
 void createDepthResources(struct Engine_App* state);
-VkImageView createImageView(struct RazWindow* window, VkImage image, VkFormat format,VkImageAspectFlags aspectFlags);
-
+VkImageView createImageView(struct RazWindow* window, VkImage image, VkFormat format,VkImageAspectFlags aspectFlags,uint32_t mipLevels);
+void generateMipmaps(struct Engine_App* state, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 void loadModel(struct Engine_App* state);
 
 
@@ -42,4 +42,5 @@ VkImageTiling tiling,
 VkImageUsageFlags usage,
 VkMemoryPropertyFlags properties,
 VkImage& image,
-VkDeviceMemory& imageMemory);
+VkDeviceMemory& imageMemory,
+uint32_t mipLevels);

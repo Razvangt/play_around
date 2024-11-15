@@ -2,7 +2,9 @@
 
 [tutorial](https://vulkan-tutorial.com/Uniform_buffers/Descriptor_pool_and_sets)
 
+final result of the tutorial: 
 
+![image](./final_result.png)
 
 ## BUILD 
 
@@ -30,3 +32,6 @@ Run this scripts on this order
 
 ## Editor 
 I use nvim + lazyvim + clang lsp  + Exrc Plugin + Overseer 
+
+
+

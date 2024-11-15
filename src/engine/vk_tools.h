@@ -53,3 +53,4 @@ void* pUserData) {
 VkFormat findSupportedFormat(struct Engine_App* state, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 VkFormat findDepthFormat(struct Engine_App* state);
 bool hasStencilComponent(VkFormat format);
+VkSampleCountFlagBits getMaxUsableSampleCount(struct Engine_App* state);

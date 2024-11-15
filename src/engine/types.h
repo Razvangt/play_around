@@ -168,6 +168,11 @@ struct Engine_App {
     VkDeviceMemory textureImageMemory;
     VkImageView textureImageView;
     VkSampler textureSampler;
+    VkSampleCountFlagBits msaaSamples;   
+    
+    VkImage colorImage;
+    VkDeviceMemory colorImageMemory; 
+    VkImageView colorImageView;
 
     VkImage depthImage;
     VkDeviceMemory depthImageMemory;

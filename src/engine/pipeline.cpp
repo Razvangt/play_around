@@ -1,6 +1,4 @@
 #include "pipeline.h"
-#include "types.h"
-#include "vk_tools.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -8,10 +6,20 @@
 #include <tiny_obj_loader.h>
 
 void createRenderPass(struct Engine_App* state) {
+    VkAttachmentDescription colorAttachment{};
+    colorAttachment.format         = state->swapChain.ImageFormat;
+    colorAttachment.samples        = state->msaaSamples;
+    colorAttachment.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.finalLayout    = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
 
     VkAttachmentDescription depthAttachment{};
     depthAttachment.format         = findDepthFormat(state);
-    depthAttachment.samples        = VK_SAMPLE_COUNT_1_BIT;
+    depthAttachment.samples        = state->msaaSamples;
     depthAttachment.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depthAttachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -19,29 +27,35 @@ void createRenderPass(struct Engine_App* state) {
     depthAttachment.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
     depthAttachment.finalLayout    = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-    VkAttachmentReference depthAttachmentRef{};
-    depthAttachmentRef.attachment = 1;
-    depthAttachmentRef.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    VkAttachmentDescription colorAttachmentResolve{};
+    colorAttachmentResolve.format         = state->swapChain.ImageFormat;
+    colorAttachmentResolve.samples        = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachmentResolve.loadOp         = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachmentResolve.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachmentResolve.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachmentResolve.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachmentResolve.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-    VkAttachmentDescription colorAttachment{};
-    colorAttachment.format         = state->swapChain.ImageFormat;
-    colorAttachment.samples        = VK_SAMPLE_COUNT_1_BIT;
-    colorAttachment.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    colorAttachment.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
-    colorAttachment.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
     VkAttachmentReference colorAttachmentRef{};
     colorAttachmentRef.attachment = 0;
     colorAttachmentRef.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentRef{};
+    depthAttachmentRef.attachment = 1;
+    depthAttachmentRef.layout     = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference colorAttachmentResolveRef{};
+    colorAttachmentResolveRef.attachment = 2;
+    colorAttachmentResolveRef.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     VkSubpassDescription subpass{};
     subpass.pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount    = 1;
     subpass.pColorAttachments       = &colorAttachmentRef;
     subpass.pDepthStencilAttachment = &depthAttachmentRef;
+    subpass.pResolveAttachments     = &colorAttachmentResolveRef;
 
     VkSubpassDependency dependency{};
     dependency.srcSubpass    = VK_SUBPASS_EXTERNAL;
@@ -54,7 +68,7 @@ void createRenderPass(struct Engine_App* state) {
     dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-    std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+    std::array<VkAttachmentDescription, 3> attachments = { colorAttachment, depthAttachment, colorAttachmentResolve };
     VkRenderPassCreateInfo renderPassInfo{};
     renderPassInfo.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -123,7 +137,9 @@ void createGraphicsPipeline(struct Engine_App* state) {
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType                = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable  = VK_FALSE;
-    multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisampling.rasterizationSamples = state->msaaSamples;
+    multisampling.sampleShadingEnable  = VK_TRUE;
+    multisampling.minSampleShading     =.2f;
 
     VkPipelineColorBlendAttachmentState colorBlendAttachment{};
     colorBlendAttachment.colorWriteMask =
@@ -207,22 +223,23 @@ VkShaderModule createShaderModule(VkDevice device, const std::vector<char>& code
     return shaderModule;
 }
 
-void createFramebuffers(struct RazSwapChain* swapChain, VkDevice device, VkRenderPass renderPass, VkImageView depthImageView) {
-    swapChain->Framebuffers.resize(swapChain->ImageViews.size());
+void createFramebuffers(struct Engine_App* state) {
 
-    for (size_t i = 0; i < swapChain->ImageViews.size(); i++) {
-        std::array<VkImageView, 2> attachments = { swapChain->ImageViews[i], depthImageView };
+    state->swapChain.Framebuffers.resize(state->swapChain.ImageViews.size());
+
+    for (size_t i = 0; i < state->swapChain.ImageViews.size(); i++) {
+        std::array<VkImageView, 3> attachments = { state->colorImageView, state->depthImageView, state->swapChain.ImageViews[i] };
 
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass      = renderPass;
+        framebufferInfo.renderPass      = state->renderPass;
         framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         framebufferInfo.pAttachments    = attachments.data();
         framebufferInfo.layers          = 1;
-        framebufferInfo.width           = swapChain->Extent.width;
-        framebufferInfo.height          = swapChain->Extent.height;
+        framebufferInfo.width           = state->swapChain.Extent.width;
+        framebufferInfo.height          = state->swapChain.Extent.height;
 
-        if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChain->Framebuffers[i]) != VK_SUCCESS) {
+        if (vkCreateFramebuffer(state->window.device, &framebufferInfo, nullptr, &state->swapChain.Framebuffers[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create framebuffer!");
         }
     }
@@ -531,25 +548,35 @@ void recreateSwapChain(struct Engine_App* state) {
 
     vkDeviceWaitIdle(state->window.device);
 
-    cleanupSwapChain(&state->swapChain, state->window.device);
+    cleanupSwapChain(state);
 
     createSwapChain(&state->window, &state->swapChain);
     createImageViews(&state->window, &state->swapChain);
+    createColorResources(state);
     createDepthResources(state);
-    createFramebuffers(&state->swapChain, state->window.device, state->renderPass, state->depthImageView);
+    createFramebuffers(state);
 }
 
 
-void cleanupSwapChain(RazSwapChain* swapChain, VkDevice device) {
-    for (auto framebuffer : swapChain->Framebuffers) {
-        vkDestroyFramebuffer(device, framebuffer, nullptr);
+void cleanupSwapChain(struct Engine_App* state) {
+    vkDestroyImageView(state->window.device, state->depthImageView, nullptr);
+    vkDestroyImage(state->window.device, state->depthImage, nullptr);
+    vkFreeMemory(state->window.device, state->depthImageMemory, nullptr);
+
+    vkDestroyImageView(state->window.device, state->colorImageView, nullptr);
+    vkDestroyImage(state->window.device, state->colorImage, nullptr);
+    vkFreeMemory(state->window.device, state->colorImageMemory, nullptr);
+
+
+    for (auto framebuffer : state->swapChain.Framebuffers) {
+        vkDestroyFramebuffer(state->window.device, framebuffer, nullptr);
     }
 
-    for (auto imageView : swapChain->ImageViews) {
-        vkDestroyImageView(device, imageView, nullptr);
+    for (auto imageView : state->swapChain.ImageViews) {
+        vkDestroyImageView(state->window.device, imageView, nullptr);
     }
 
-    vkDestroySwapchainKHR(device, swapChain->handle, nullptr);
+    vkDestroySwapchainKHR(state->window.device, state->swapChain.handle, nullptr);
 }
 
 
@@ -664,7 +691,7 @@ void createTextureImage(struct Engine_App* state) {
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels        = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
-    state->mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
+    state->mipLevels       = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
     if (!pixels) {
         throw std::runtime_error("failed to load texture image!");
     }
@@ -683,7 +710,7 @@ void createTextureImage(struct Engine_App* state) {
 
     createImage(state, texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
     VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, state->textureImage, state->textureImageMemory, state->mipLevels);
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, state->textureImage, state->textureImageMemory, state->mipLevels, VK_SAMPLE_COUNT_1_BIT);
 
     transitionImageLayout(state, state->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, state->mipLevels);
@@ -782,7 +809,8 @@ VkImageUsageFlags usage,
 VkMemoryPropertyFlags properties,
 VkImage& image,
 VkDeviceMemory& imageMemory,
-uint32_t mipLevels) {
+uint32_t mipLevels,
+VkSampleCountFlagBits numSamples) {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType     = VK_IMAGE_TYPE_2D;
@@ -795,9 +823,8 @@ uint32_t mipLevels) {
     imageInfo.tiling        = tiling;
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.usage         = usage;
-    imageInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.samples       = numSamples;
     imageInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
-
     if (vkCreateImage(state->window.device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
         throw std::runtime_error("failed to create image!");
     }
@@ -856,7 +883,7 @@ void createDepthResources(struct Engine_App* state) {
 
     createImage(state, state->swapChain.Extent.width, state->swapChain.Extent.height, depthFormat,
     VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-    state->depthImage, state->depthImageMemory, 1);
+    state->depthImage, state->depthImageMemory, 1, state->msaaSamples);
 
     state->depthImageView = createImageView(&state->window, state->depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 }
@@ -883,7 +910,7 @@ void loadModel(struct Engine_App* state) {
             vertex.texCoord = { attrib.texcoords[2 * index.texcoord_index + 0],
                 1.0f - attrib.texcoords[2 * index.texcoord_index + 1] };
 
-            vertex.color    = { 1.0f, 1.0f, 1.0f };
+            vertex.color = { 1.0f, 1.0f, 1.0f };
 
             if (uniqueVertices.count(vertex) == 0) {
                 uniqueVertices[vertex] = static_cast<uint32_t>(state->vertices.size());
@@ -893,4 +920,15 @@ void loadModel(struct Engine_App* state) {
             state->indices.push_back(uniqueVertices[vertex]);
         }
     }
+}
+
+
+void createColorResources(struct Engine_App* state) {
+    VkFormat colorFormat = state->swapChain.ImageFormat;
+
+    createImage(state, state->swapChain.Extent.width, state->swapChain.Extent.height, colorFormat,
+    VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, state->colorImage, state->colorImageMemory, 1, state->msaaSamples);
+
+    state->colorImageView = createImageView(&state->window, state->colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 }

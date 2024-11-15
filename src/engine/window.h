@@ -12,7 +12,7 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
 void initWindow(struct Engine_App *state);
 void createInstance(struct RazWindow *window);
 void createSurface(struct RazWindow *window);
-void pickPhysicalDevice(struct RazWindow *window);
+void pickPhysicalDevice(struct Engine_App *state);
 bool isDeviceSuitable(VkSurfaceKHR surface,VkPhysicalDevice device);
 void createLogicalDevice(struct Engine_App *state);
 

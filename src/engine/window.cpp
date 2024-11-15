@@ -58,25 +58,26 @@ void createSurface(struct RazWindow* window) {
     }
 }
 
-void pickPhysicalDevice(struct RazWindow* window) {
+void pickPhysicalDevice(struct Engine_App *state){
     uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(window->instance, &deviceCount, nullptr);
+    vkEnumeratePhysicalDevices(state -> window.instance, &deviceCount, nullptr);
 
     if (deviceCount == 0) {
         throw std::runtime_error("failed to find GPUs with Vulkan support!");
     }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(window->instance, &deviceCount, devices.data());
+    vkEnumeratePhysicalDevices(state -> window.instance, &deviceCount, devices.data());
 
     for (const auto& device : devices) {
-        if (isDeviceSuitable(window->surface, device)) {
-            window->physicalDevice = device;
+        if (isDeviceSuitable(state -> window.surface, device)) {
+            state -> window.physicalDevice = device;
+            state -> msaaSamples = getMaxUsableSampleCount(state);
             break;
         }
     }
 
-    if (window->physicalDevice == VK_NULL_HANDLE) {
+    if (state -> window.physicalDevice == VK_NULL_HANDLE) {
         throw std::runtime_error("failed to find a suitable GPU!");
     }
 }
@@ -114,6 +115,7 @@ void createLogicalDevice(struct Engine_App* state) {
 
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
+    deviceFeatures.sampleRateShading = VK_TRUE;
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 

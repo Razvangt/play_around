@@ -13,7 +13,7 @@ void initVulkan(struct Engine_App* state) {
     createInstance(&state->window);
     setupDebugMessenger(state->window.instance, &state->debugMessenger);
     createSurface(&state->window);
-    pickPhysicalDevice(&state->window);
+    pickPhysicalDevice(state);
     createLogicalDevice(state);
 
     // swapchain.h
@@ -27,8 +27,9 @@ void initVulkan(struct Engine_App* state) {
 
     // vk_commands.h
     createCommandPool(state);
+    createColorResources(state);
     createDepthResources(state);
-    createFramebuffers(&state->swapChain, state->window.device, state->renderPass,state ->depthImageView);
+    createFramebuffers(state);
     createTextureImage(state);
     createTextureImageView(state);
     createTextureSampler(state);
@@ -53,7 +54,7 @@ void mainLoop(struct Engine_App* state) {
 
 
 void cleanup(struct Engine_App* state) {
-    cleanupSwapChain(&state->swapChain, state->window.device);
+    cleanupSwapChain(state);
 
     vkDestroyImageView(state -> window.device,state-> depthImageView, nullptr);
     vkDestroyImage(state -> window.device,state-> depthImage, nullptr);
